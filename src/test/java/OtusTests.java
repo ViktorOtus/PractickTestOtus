@@ -1,51 +1,55 @@
-import io.github.bonigarcia.wdm.WebDriverManager;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.testng.annotations.*;
-import pages.EventsCalendarPage;
-import pages.JavaQAEngineerBasicCoursePage;
-import pages.TestingCategoryPage;
-import pages.HomePage;
-import utils.DateTimeUtils;
-
-import java.time.LocalDate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.openqa.selenium.WebDriver;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+import pages.CoursePage;
+import pages.EventsCalendarPage;
+import pages.HomePage;
+import pages.TestingCategoryPage;
+import webdriverFactory.WebDriverFactory;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
-import static pages.JavaQAEngineerBasicCoursePage.*;
 
 public class OtusTests extends BaseTest {
 
-    WebDriver driver;
-    final static Logger logger = LogManager.getLogger(OtusTests.class);
-    HomePage homePage;
-    EventsCalendarPage eventsCalendarPage;
-    TestingCategoryPage categoryPage;
-    JavaQAEngineerBasicCoursePage javaQAEngineerBasicCoursePage;
+    private WebDriver driver;
+    private final static Logger logger = LogManager.getLogger(OtusTests.class);
+    private HomePage homePage;
+    private EventsCalendarPage eventsCalendarPage;
+    private TestingCategoryPage categoryPage;
+    private CoursePage javaQAEngineerBasicCoursePage;
 
     @BeforeMethod
     public void setUp() {
-        // Set up the WebDriverManager for chrome driver
-        WebDriverManager.chromedriver().setup();
         // Create the driver object
-        driver = new ChromeDriver();
+        WebDriverFactory factory = new WebDriverFactory();
+        driver = factory.getDriver("chrome").getDriver();
         driver.get (baseUrl);
     }
 
     @AfterMethod
-    public void after() { driver.close(); }
+    public void after() throws NullPointerException {
+        try {
+            driver.close();
+        } catch (NullPointerException ignored) { }
+    }
 
     private static final int NUMBER_OF_TESTING_COURSES= 14;
+    public static final String JAVA_QA_ENGINEER_BASIC_COURSE_TITLE = "Java QA Engineer. Basic";
+    public static final String JAVA_QA_ENGINEER_BASIC_COURSE_DESCRIPTION = "Автоматизация тестирования на Java с нуля";
+    public static final String JAVA_QA_ENGINEER_BASIC_COURSE_DURATION = "4 месяца";
+    public static final String ONLINE_COURSE_FORMAT = "Online";
 
     @Test
     public void checkNumberOfTestingCourses() {
         logger.info("Test checkNumberOfTestingCourses start");
         homePage = new HomePage(driver);
         categoryPage = new TestingCategoryPage(driver);
-        driver.findElement(homePage.getTestingCourseTabLink()).click();
-        assertEquals(categoryPage.getCourseCardElements().size(), NUMBER_OF_TESTING_COURSES);
+        homePage.navigateToCategory("Тестирование");
+        assertEquals(categoryPage.getNumberOfCourses(), NUMBER_OF_TESTING_COURSES);
         logger.info("Test checkNumberOfTestingCourses completed");
     }
 
@@ -54,13 +58,14 @@ public class OtusTests extends BaseTest {
         logger.info("Test checkCourseInformation start");
         homePage = new HomePage(driver);
         categoryPage = new TestingCategoryPage(driver);
-        javaQAEngineerBasicCoursePage = new JavaQAEngineerBasicCoursePage(driver);
-        driver.findElement(homePage.getTestingCourseTabLink()).click();
-        categoryPage.getCourseCardElementByName(JAVA_QA_ENGINEER_BASIC_COURSE_TITLE).click();
-        assertEquals(javaQAEngineerBasicCoursePage.getCourseTitle(), JAVA_QA_ENGINEER_BASIC_COURSE_TITLE);
-        assertEquals(javaQAEngineerBasicCoursePage.getCourseDescription(), JAVA_QA_ENGINEER_BASIC_COURSE_DESCRIPTION);
-        assertEquals(javaQAEngineerBasicCoursePage.getCourseDuration(), JAVA_QA_ENGINEER_BASIC_COURSE_DURATION);
-        assertEquals(javaQAEngineerBasicCoursePage.getCourseFormat(), JAVA_QA_ENGINEER_BASIC_COURSE_FORMAT);
+        javaQAEngineerBasicCoursePage = new CoursePage(driver);
+        homePage.navigateToCategory("Тестирование");
+        categoryPage.navigateToCoursePage(JAVA_QA_ENGINEER_BASIC_COURSE_TITLE);
+        assertTrue(javaQAEngineerBasicCoursePage.courseHasParameters(
+                JAVA_QA_ENGINEER_BASIC_COURSE_TITLE,
+                JAVA_QA_ENGINEER_BASIC_COURSE_DESCRIPTION,
+                JAVA_QA_ENGINEER_BASIC_COURSE_DURATION,
+                ONLINE_COURSE_FORMAT));
         logger.info("Test checkCourseInformation completed");
     }
 
@@ -69,10 +74,8 @@ public class OtusTests extends BaseTest {
         logger.info("Test eventsDatesValidation start");
         homePage = new HomePage(driver);
         eventsCalendarPage = homePage.navigateToEventsCalendarPage();
-        assertTrue(eventsCalendarPage.getEvents().size() > 0);
-        eventsCalendarPage.getEventsDates().forEach(date -> {
-            assertTrue(dateIsInFuture(date.getText()));
-        });
+        assertTrue(eventsCalendarPage.getNumberOfEvents() > 0);
+        assertTrue(eventsCalendarPage.eventsDatesAreInFuture());
         logger.info("Test eventsDatesValidation completed");
     }
 
@@ -82,13 +85,7 @@ public class OtusTests extends BaseTest {
         homePage = new HomePage(driver);
         eventsCalendarPage = homePage.navigateToEventsCalendarPage();
         eventsCalendarPage.filterEventsByType("Открытый вебинар");
-        boolean eventsAreFiltered = eventsCalendarPage.getEventsTypes().stream()
-                .allMatch(webElement -> webElement.getText().equals("Открытый вебинар"));
-        assertTrue(eventsAreFiltered);
+        assertTrue(eventsCalendarPage.eventsAreFilteredBy("Открытый вебинар"));
         logger.info("Test filterByTypeValidation completed");
-    }
-
-    private boolean dateIsInFuture(String date) {
-        return DateTimeUtils.getDateByStringDDMon(date).isAfter(LocalDate.now());
     }
 }

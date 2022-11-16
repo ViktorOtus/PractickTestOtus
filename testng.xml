@@ -1,0 +1,8 @@
+<suite name="Regression test">
+    <parameter name="baseUrl" value="https://otus.ru"/>
+    <test name="Otus tests">
+        <classes>
+            <class name="OtusTests"/>
+        </classes>
+    </test>
+</suite>

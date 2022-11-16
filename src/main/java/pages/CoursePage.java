@@ -3,16 +3,11 @@ package pages;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 
-public class JavaQAEngineerBasicCoursePage {
-
-    public static final String JAVA_QA_ENGINEER_BASIC_COURSE_TITLE = "Java QA Engineer. Basic";
-    public static final String JAVA_QA_ENGINEER_BASIC_COURSE_DESCRIPTION = "Автоматизация тестирования на Java с нуля";
-    public static final String JAVA_QA_ENGINEER_BASIC_COURSE_DURATION = "4 месяца";
-    public static final String JAVA_QA_ENGINEER_BASIC_COURSE_FORMAT = "Online";
+public class CoursePage extends PageObject {
 
     WebDriver driver;
 
-    public JavaQAEngineerBasicCoursePage(WebDriver driver) {
+    public CoursePage(WebDriver driver) {
         this.driver = driver;
     }
 
@@ -35,5 +30,12 @@ public class JavaQAEngineerBasicCoursePage {
 
     public String getCourseFormat() {
         return driver.findElement(courseFormat).getText().trim();
+    }
+
+    public boolean courseHasParameters(String title, String description, String duration, String format) {
+        return getCourseTitle().equals(title) &&
+                getCourseDescription().equals(description) &&
+                getCourseDuration().equals(duration) &&
+                getCourseFormat().equals(format);
     }
 }

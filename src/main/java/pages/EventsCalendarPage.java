@@ -7,11 +7,13 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import utils.DateTimeUtils;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.util.List;
 
-public class EventsCalendarPage {
+public class EventsCalendarPage extends PageObject {
 
     WebDriver driver;
     WebDriverWait wait;
@@ -40,6 +42,10 @@ public class EventsCalendarPage {
         return driver.findElements(events);
     }
 
+    public int getNumberOfEvents() {
+        return getEvents().size();
+    }
+
     public void filterEventsByType(String type) {
         logger.info("Waiting for event types dropdown to be clickable");
         wait.until(ExpectedConditions.elementToBeClickable(allEventsTypesDropdownLink));
@@ -47,5 +53,13 @@ public class EventsCalendarPage {
         driver.findElements(eventsDropdownType).stream()
                 .filter(dropdownType -> dropdownType.getText().equals(type))
                 .findFirst().ifPresent(WebElement::click);
+    }
+
+    public boolean eventsDatesAreInFuture() {
+        return getEventsDates().stream().allMatch(date -> dateIsInFuture(date.getText()));
+    }
+
+    public boolean eventsAreFilteredBy(String eventType) {
+        return getEventsTypes().stream().allMatch(webElement -> webElement.getText().equals(eventType));
     }
 }

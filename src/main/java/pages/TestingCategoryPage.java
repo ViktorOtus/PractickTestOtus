@@ -6,7 +6,7 @@ import org.openqa.selenium.WebElement;
 
 import java.util.List;
 
-public class TestingCategoryPage {
+public class TestingCategoryPage extends PageObject {
 
     WebDriver driver;
 
@@ -15,7 +15,6 @@ public class TestingCategoryPage {
     }
 
     private final By lessonBlock = By.cssSelector("div.lessons");
-    private String courseSelector = "//div[text()[contains(.,'%s')]]/../..";
 
     private WebElement getLessonBlockElement() {
         return driver.findElement(lessonBlock);
@@ -24,8 +23,17 @@ public class TestingCategoryPage {
         return getLessonBlockElement().findElements(By.cssSelector("a"));
     }
 
+    public int getNumberOfCourses() {
+        return getCourseCardElements().size();
+    }
+
     public WebElement getCourseCardElementByName(String courseName) {
+        String courseSelector = "//div[text()[contains(.,'%s')]]/../..";
         return getLessonBlockElement()
                 .findElement(By.xpath(String.format(courseSelector, courseName)));
+    }
+
+    public void navigateToCoursePage(String courseName) {
+        getCourseCardElementByName(courseName).click();
     }
 }

@@ -1,5 +1,4 @@
 
 public class BaseTest {
-
-    protected final String baseUrl = "https://otus.ru";
+    protected final String baseUrl = System.getProperty("baseUrl");
 }
